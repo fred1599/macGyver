@@ -9,88 +9,71 @@ if not pygame.mixer: print('Warning, sound disabled')
 WIDTH, HEIGHT = 300, 300
 PATH_CURRENT_FILE = os.path.abspath(os.path.dirname(__file__))
 PATH_LEVEL = "level/level_{}.txt"
+PATH_IMAGE = os.path.join(PATH_CURRENT_FILE, "images")
 
-class Level:
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    def __init__(self, n):
-        self.content = self.load(PATH_LEVEL.format(n))
+# list of surface in game
+OBJECTS = {}
+for f in os.listdir(PATH_IMAGE):
+    new_path = os.path.join(PATH_IMAGE, f)
+    image = pygame.image.load(new_path).convert()
+    name, ext = os.path.splitext(f)
+    OBJECTS[name] = image
 
-    def load(self, path):
-        obj = []
-        with open(path, 'r') as f:
-            for line in f:
-                array_obj = map(int, list(line.rstrip('\n')))
-                obj.append(list(array_obj))
-        return obj
+def load_level(n):
+    """
+    n is the number of level
+    load_level(1) -> list of list represents grounds for level 1
+    """
+    path = os.path.join(PATH_CURRENT_FILE, PATH_LEVEL.format(n))
+    grounds = []
+    with open(path, 'r') as f:
+        for line in f:
+            objects = list(map(int, list(line.rstrip('\n'))))
+            grounds.append(objects)
+    return grounds
 
-    def draw(self, surface, speed):
-        i, j = speed, speed
-        for line in self.content:
-            for n in line:
-                if n == 0:
-                    obj = Obj("floor23")
-                elif n == 1:
-                    obj = Obj("floor15")
-                elif n == 2:
-                    obj = Player()
-                elif n == 3:
-                    obj = Obj("guardian")
-                surface.blit(obj.image, (i, j))
-                i += speed
-            i = 0
-            j += speed
+def draw(grounds, pixels):
+    obj = ("floor23", "floor15", "MacGyver", "guardian")
+    i, j = 0, 0
+    for ground in grounds:
+        for n in ground:
+            screen.blit(OBJECTS[obj[n]], (i, j))
+            i += 20
+        i = 0
+        j += 20
 
-class Obj(pygame.sprite.Sprite):
-    def __init__(self, name):
-        pygame.sprite.Sprite.__init__(self)
-        self.name = name
-        self.path = os.path.join(PATH_CURRENT_FILE, f"images/{name}.png")
-        self.image = pygame.image.load(self.path).convert()
-        self.pos = self.image.get_rect()
+def move(player, grounds, direction):
+    directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
+    x, y = directions[direction]
+    column_max = len(grounds[0])
+    for i, line in enumerate(grounds):
+        if player in line:
+            index = line.index(player)
+            new_index = index + x
+            new_line = i + y
+            if 0 <= new_index < column_max:
+                try:
+                    if grounds[new_line][new_index] != 0:
+                        grounds[new_line][new_index] = player
+                        grounds[i][index] = 1 # floor
+                except IndexError:
+                    pass # do nothing
+                break
 
-    def draw(self, surface, pos):
-        surface.blit(self.image, pos)
-
-class Player(Obj):
-
-    def __init__(self):
-        Obj.__init__(self, "MacGyver")
-        self.pos_x, self.pos_y = self.pos.x, self.pos.y
-
-    def handle_keys(self):
-        key = pygame.key.get_pressed()
-        if key[pygame.K_RIGHT]:
-            new_pos = self.pos_x + Player.speed
-            if new_pos < WIDTH:
-                self.update()
-                self.pos_x = new_pos
-        elif key[pygame.K_LEFT]:
-            new_pos = self.pos_x - Player.speed
-            if new_pos >= 0:
-                self.update()
-                self.pos_x = new_pos
-        elif key[pygame.K_UP]:
-            new_pos = self.pos_y - Player.speed
-            if new_pos >= 0:
-                self.update()
-                self.pos_y = new_pos
-        elif key[pygame.K_DOWN]:
-            new_pos = self.pos_y + Player.speed
-            if new_pos < HEIGHT:
-                self.update()
-                self.pos_y = new_pos
-
-    def draw(self, surface):
-        surface.blit(self.image, (self.pos_x, self.pos_y))
-
-    def update(self):
-        self.pos.x = self.pos_x
-        self.pos.y = self.pos_y
 
 class Game:
+    RIGHT, LEFT = 0, 1
+    UP, DOWN = 2, 3
+    SPEED = 20
+    PLAYER = 2
 
-    def __init__(self):
-        pygame.display.set_mode((WIDTH, HEIGHT))
+    def __init__(self, start=1):
+
+        self.grounds = load_level(start)
+        draw(self.grounds, Game.SPEED)
 
     def quit(self):
         """exit game"""
@@ -99,10 +82,6 @@ class Game:
 
     def start(self):
         """start game"""
-        pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
-        self.level = Level(1)
         self.clock = pygame.time.Clock()
 
         self.continu = True
@@ -110,12 +89,18 @@ class Game:
             self.clock.tick(60)
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    self.level.draw(self.screen, 20)  # 20 is speed pixels
+                    if event.key == pygame.K_RIGHT:
+                        move(Game.PLAYER, self.grounds, Game.RIGHT)
+                    elif event.key == pygame.K_LEFT:
+                        move(Game.PLAYER, self.grounds, Game.LEFT)
+                    elif event.key == pygame.K_UP:
+                        move(Game.PLAYER, self.grounds, Game.UP)
+                    elif event.key == pygame.K_DOWN:
+                        move(Game.PLAYER, self.grounds, Game.DOWN)
 
+                    draw(self.grounds, Game.SPEED)
                     pygame.display.flip()
             pygame.display.flip()
-
-
 
 game = Game()
 game.start()
