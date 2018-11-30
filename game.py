@@ -1,4 +1,5 @@
 import os, sys
+import glob
 import pygame
 from pygame.locals import *
 
@@ -16,12 +17,9 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # list of surface in game
 OBJECTS = {}
-for f in os.listdir(PATH_IMAGE):
-    new_path = os.path.join(PATH_IMAGE, f)
-    image = pygame.image.load(new_path).convert()
-    name, ext = os.path.splitext(f)
-    OBJECTS[name] = image
-
+for f in glob.iglob(PATH_CURRENT_FILE + '/**/*.png', recursive=True):
+    filename, ext = os.path.splitext(os.path.basename(f))
+    OBJECTS[filename] = pygame.image.load(f)
 
 def load_level(n):
     """
