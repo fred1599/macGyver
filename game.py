@@ -2,7 +2,6 @@ import os, sys
 import pygame
 from pygame.locals import *
 
-if not pygame.font: print('Warning, fonts disabled')
 if not pygame.mixer: print('Warning, sound disabled')
 
 # Les constantes (taille fenêtre, chemin, ...)
@@ -12,6 +11,7 @@ PATH_LEVEL = "level/level_{}.txt"
 PATH_IMAGE = os.path.join(PATH_CURRENT_FILE, "images")
 
 pygame.init()
+pygame.font.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # list of surface in game
@@ -21,6 +21,7 @@ for f in os.listdir(PATH_IMAGE):
     image = pygame.image.load(new_path).convert()
     name, ext = os.path.splitext(f)
     OBJECTS[name] = image
+
 
 def load_level(n):
     """
@@ -35,6 +36,7 @@ def load_level(n):
             grounds.append(objects)
     return grounds
 
+
 def draw(grounds, pixels):
     obj = ("floor23", "floor15", "MacGyver", "guardian")
     i, j = 0, 0
@@ -44,6 +46,7 @@ def draw(grounds, pixels):
             i += 20
         i = 0
         j += 20
+
 
 def move(player, grounds, direction):
     directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
@@ -56,13 +59,22 @@ def move(player, grounds, direction):
             new_line = i + y
             if 0 <= new_index < column_max:
                 try:
-                    if grounds[new_line][new_index] != 0:
+                    if grounds[new_line][new_index] == 3:
+                        return True
+                    elif grounds[new_line][new_index] != 0:
                         grounds[new_line][new_index] = player
                         grounds[i][index] = 1 # floor
                 except IndexError:
                     pass # do nothing
                 break
 
+
+def draw_result(win=True):
+    text = "You won" if win else "You lose"
+    pygame.draw.rect(screen, (0, 0, 0), (25, 25, 100, 50))
+    surf = pygame.font.SysFont('helvetica', 18).\
+            render(text, True, (255, 255, 255))
+    screen.blit(surf, (50, 50))
 
 class Game:
     RIGHT, LEFT = 0, 1
@@ -90,15 +102,17 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RIGHT:
-                        move(Game.PLAYER, self.grounds, Game.RIGHT)
+                        res = move(Game.PLAYER, self.grounds, Game.RIGHT)
                     elif event.key == pygame.K_LEFT:
-                        move(Game.PLAYER, self.grounds, Game.LEFT)
+                        res = move(Game.PLAYER, self.grounds, Game.LEFT)
                     elif event.key == pygame.K_UP:
-                        move(Game.PLAYER, self.grounds, Game.UP)
+                        res = move(Game.PLAYER, self.grounds, Game.UP)
                     elif event.key == pygame.K_DOWN:
-                        move(Game.PLAYER, self.grounds, Game.DOWN)
+                        res = move(Game.PLAYER, self.grounds, Game.DOWN)
 
                     draw(self.grounds, Game.SPEED)
+                    if res:
+                        draw_result(res)
                     pygame.display.flip()
             pygame.display.flip()
 
