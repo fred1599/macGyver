@@ -20,7 +20,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 OBJECTS = {}
 for f in glob.iglob(PATH_CURRENT_FILE + '/**/*.png', recursive=True):
     filename, ext = os.path.splitext(os.path.basename(f))
-    OBJECTS[filename] = pygame.image.load(f)
+    OBJECTS[filename] = pygame.image.load(f).convert()
 
 def load_level(n):
     """
@@ -37,12 +37,12 @@ def load_level(n):
 
 def add_warn_object(surface, grounds, obj, speed):
     while True:
-        line_rand = randint(0, len(grounds) - 1)
-        line_column = randint(0, len(grounds[0]) - 1)
-        n = grounds[line_rand][line_column]
-        if n == 1 and grounds[line_rand][line_column-1] != 2:
-            grounds[line_rand][line_column] = -1
-            surface.blit(obj, (line_column*speed, line_rand*speed))
+        line_rand = randint(0, len(grounds)-1)
+        column_rand = randint(0, len(grounds[0]) - 1)
+        n = grounds[line_rand][column_rand]
+        if n == 1:
+            grounds[line_rand][column_rand] = -1
+            surface.blit(obj, (column_rand*speed, line_rand*speed))
             break
 
 def draw(grounds, pixels):
@@ -92,8 +92,8 @@ class Game:
 
         self.grounds = load_level(start)
         draw(self.grounds, Game.SPEED)
-        add_warn_object(screen, self.grounds, OBJECTS["ether"], Game.SPEED)
         add_warn_object(screen, self.grounds, OBJECTS["aiguille"], Game.SPEED)
+        add_warn_object(screen, self.grounds, OBJECTS["ether"], Game.SPEED)
         add_warn_object(screen, self.grounds, OBJECTS["seringue"], Game.SPEED)
 
     def quit(self):
@@ -120,11 +120,9 @@ class Game:
                         res = move(Game.PLAYER, self.grounds, Game.DOWN)
 
                     draw(self.grounds, Game.SPEED)
-                    if res == False:
+                    if res == False or res == True:
                         draw_result(res)
                         self.continu = False
-                    if res:
-                        draw_result(res)
                     pygame.display.flip()
             pygame.display.flip()
 
