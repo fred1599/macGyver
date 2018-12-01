@@ -4,17 +4,18 @@ import pygame
 from pygame.locals import *
 from random import randint
 
+WIDTH, HEIGHT = 300, 300
+
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.font.init()
+
 if not pygame.mixer: print('Warning, sound disabled')
 
-# Les constantes (taille fenêtre, chemin, ...)
-WIDTH, HEIGHT = 300, 300
+# Constants
 PATH_CURRENT_FILE = os.path.abspath(os.path.dirname(__file__))
 PATH_LEVEL = "level/level_{}.txt"
 PATH_IMAGE = os.path.join(PATH_CURRENT_FILE, "images")
-
-pygame.init()
-pygame.font.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # list of surfaces in game
 OBJECTS = {}
@@ -22,11 +23,10 @@ for f in glob.iglob(PATH_CURRENT_FILE + '/**/*.png', recursive=True):
     filename, ext = os.path.splitext(os.path.basename(f))
     OBJECTS[filename] = pygame.image.load(f).convert()
 
-
 def load_level(n):
     """
-    n is the number of level
-    load_level(1) -> list of list represents grounds for level 1
+    :param n: integer that is the number of level
+    :return: list of lists that represents line and column of level
     """
     path = os.path.join(PATH_CURRENT_FILE, PATH_LEVEL.format(n))
     grounds = []
@@ -38,6 +38,13 @@ def load_level(n):
 
 
 def add_warn_object(surface, grounds, obj, speed):
+    """
+    :param surface: surface pygame where we draw
+    :param grounds: list of lists who represents the level
+    :param obj: surface pygame of object that we placed
+    :param speed: integer who represents the number of pixel of image
+    :return: None
+    """
     while True:
         line_rand = randint(0, len(grounds)-1)
         column_rand = randint(0, len(grounds[0]) - 1)
@@ -49,6 +56,11 @@ def add_warn_object(surface, grounds, obj, speed):
 
 
 def draw(grounds, pixels):
+    """
+    :param grounds: list of lists who represents the level
+    :param pixels: integer who represents the number of pixel of image
+    :return: None
+    """
     obj = ("floor23", "floor15", "MacGyver", "guardian")
     for j, ground in enumerate(grounds):
         for i, n in enumerate(ground):
@@ -57,6 +69,12 @@ def draw(grounds, pixels):
 
 
 def move(player, grounds, direction):
+    """
+    :param player: Integer represent the value placed in level
+    :param grounds: list of lists who represents the level
+    :param direction: index given by the user information by pressing the arrow keys
+    :return: None
+    """
     directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
     x, y = directions[direction]
     column_max = len(grounds[0])
@@ -77,6 +95,10 @@ def move(player, grounds, direction):
 
 
 def draw_result(win=True):
+    """
+    :param win: True or False for Winner or Loser
+    :return: None
+    """
     text = "You won" if win else "You lose"
     pygame.draw.rect(screen, (0, 0, 0), (25, 25, 100, 50))
     surf = pygame.font.SysFont('helvetica', 18).\
@@ -91,7 +113,6 @@ class Game:
     PLAYER = 2
 
     def __init__(self, start=1):
-
         self.grounds = load_level(start)
         draw(self.grounds, Game.SPEED)
         for name in ("aiguille", "ether", "seringue"):
@@ -101,6 +122,7 @@ class Game:
         """exit game"""
         self.continu = False
         pygame.quit()
+        sys.exit()
 
     def start(self):
         """start game"""
@@ -117,8 +139,9 @@ class Game:
                             draw(self.grounds, Game.SPEED)
                             if res != None:
                                 draw_result(res)
-                                self.continu = False
-                        pygame.display.flip()
+                                pygame.display.flip()
+                                pygame.time.delay(2000)
+                                self.quit()
             pygame.display.flip()
 
 game = Game()
