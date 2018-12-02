@@ -1,148 +1,219 @@
 import os, sys
-import glob
 import pygame
-from pygame.locals import *
+
 from random import randint
+from pygame.locals import *
 
-WIDTH, HEIGHT = 300, 300
-
+# Game Initialization
 pygame.init()
+
+# Center the Game Application
+os.environ['SDL_VIDEO_CENTERED'] = '1'
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (50, 50, 50)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+
+# Game Resolution
+WIDTH = 300
+HEIGHT = 300
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.font.init()
 
-if not pygame.mixer: print('Warning, sound disabled')
+# Game Fonts
+font = "Airstream.ttf"
 
-# Constants
-PATH_CURRENT_FILE = os.path.abspath(os.path.dirname(__file__))
-PATH_LEVEL = "level/level_{}.txt"
-PATH_IMAGE = os.path.join(PATH_CURRENT_FILE, "images")
-
-# list of surfaces in game
-OBJECTS = {}
-for f in glob.iglob(PATH_CURRENT_FILE + '/**/*.png', recursive=True):
-    filename, ext = os.path.splitext(os.path.basename(f))
-    OBJECTS[filename] = pygame.image.load(f).convert()
-
-def load_level(n):
-    """
-    :param n: integer that is the number of level
-    :return: list of lists that represents line and column of level
-    """
-    path = os.path.join(PATH_CURRENT_FILE, PATH_LEVEL.format(n))
-    grounds = []
-    with open(path, 'r') as f:
-        for line in f:
-            objects = list(map(int, list(line.rstrip('\n'))))
-            grounds.append(objects)
-    return grounds
+# Game Framerate
+clock = pygame.time.Clock()
+FPS = 30
 
 
-def add_warn_object(surface, grounds, obj, speed):
-    """
-    :param surface: surface pygame where we draw
-    :param grounds: list of lists who represents the level
-    :param obj: surface pygame of object that we placed
-    :param speed: integer who represents the number of pixel of image
-    :return: None
-    """
-    while True:
-        line_rand = randint(0, len(grounds)-1)
-        column_rand = randint(0, len(grounds[0]) - 1)
-        n = grounds[line_rand][column_rand]
-        if n == 1:
-            grounds[line_rand][column_rand] = -1
-            surface.blit(obj, (column_rand*speed, line_rand*speed))
-            break
+def text_format(message, textFont, textSize, textColor):
+    newFont = pygame.font.Font(textFont, textSize)
+    newText = newFont.render(message, 0, textColor)
+
+    return newText
 
 
-def draw(grounds, pixels):
-    """
-    :param grounds: list of lists who represents the level
-    :param pixels: integer who represents the number of pixel of image
-    :return: None
-    """
-    obj = ("floor23", "floor15", "MacGyver", "guardian")
-    for j, ground in enumerate(grounds):
-        for i, n in enumerate(ground):
-            if n >= 0:
-                screen.blit(OBJECTS[obj[n]], (i*20, j*20))
+def main_menu():
+    menu = True
+    selected = True
 
+    while menu:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected = True
+                elif event.key == pygame.K_DOWN:
+                    selected = False
+                if event.key == pygame.K_RETURN:
+                    if selected:
+                        Game(1).start()
+                    else:
+                        pygame.quit()
+                        quit()
 
-def move(player, grounds, direction):
-    """
-    :param player: Integer represent the value placed in level
-    :param grounds: list of lists who represents the level
-    :param direction: index given by the user information by pressing the arrow keys
-    :return: None
-    """
-    directions = [(1, 0), (-1, 0), (0, -1), (0, 1)]
-    x, y = directions[direction]
-    column_max = len(grounds[0])
-    for i, line in enumerate(grounds):
-        if player in line:
-            index = line.index(player)
-            new_index = index + x # new column of player
-            new_line = i + y # new line of player
-            if 0 <= new_index < column_max:
-                if grounds[new_line][new_index] == -1: # collision dangerous objects
-                    return False # Quit Game with message "you lose"
-                elif grounds[new_line][new_index] == 3: # collision guardian
-                    return True # Quit Game with message "you win"
-                elif grounds[new_line][new_index] != 0: # collision floor
-                    grounds[new_line][new_index] = player
-                    grounds[i][index] = 1 # floor
-                break
+        # Main Menu UI
+        screen.fill(BLUE)
+        title = text_format("Mc Gyver", font, 45, YELLOW)
+        if selected:
+            text_start = text_format("START", font, 30, WHITE)
+            start_rect = text_start.get_rect()
+            screen.blit(text_start, (WIDTH / 2 - (start_rect[2] / 2), 150))
+        elif not selected:
+            text_quit = text_format("QUIT", font, 30, BLACK)
+            quit_rect = text_quit.get_rect()
+            screen.blit(text_quit, (WIDTH / 2 - (quit_rect[2] / 2), 180))
 
+        title_rect = title.get_rect()
 
-def draw_result(win=True):
-    """
-    :param win: True or False for Winner or Loser
-    :return: None
-    """
-    text = "You won" if win else "You lose"
-    pygame.draw.rect(screen, (0, 0, 0), (25, 25, 100, 50))
-    surf = pygame.font.SysFont('helvetica', 18).\
-            render(text, True, (255, 255, 255))
-    screen.blit(surf, (50, 50))
+        # Main Menu Text
+        screen.blit(title, (WIDTH / 2 - (title_rect[2] / 2), 80))
+
+        pygame.display.update()
+        clock.tick(FPS)
+        pygame.display.set_caption("Mc Gyver - Main Menu")
 
 
 class Game:
-    RIGHT, LEFT = 0, 1
-    UP, DOWN = 2, 3
-    SPEED = 20
+    PATH_CURRENT_FILE = os.path.abspath(os.path.dirname(__file__))
+    PATH_LEVEL = "level/level_{}.txt"
+    PATH_IMAGES = "images"
+    PATH_BONUS = "images/bonus"
+    DIRECTIONS = {
+        "RIGHT": (1, 0), "LEFT": (-1, 0),
+        "UP": (0, -1), "DOWN": (0, 1)
+    }
+
     PLAYER = 2
+    GUARDIAN = 3
 
-    def __init__(self, start=1):
-        self.grounds = load_level(start)
-        draw(self.grounds, Game.SPEED)
-        for name in ("aiguille", "ether", "seringue"):
-            add_warn_object(screen, self.grounds, OBJECTS[name], Game.SPEED)
+    WALL = 0
+    FLOOR = 1
+    BONUS = -1
 
-    def quit(self):
-        """exit game"""
-        self.continu = False
-        pygame.quit()
-        sys.exit()
+    FLOORS = ('images/floor15.png', 'images/floor23.png')
+    GUARDIAN_IMAGE = 'images/guardian.png'
+    MACGYVER_IMAGE = 'images/MacGyver.png'
+    WINNER = 'images/player/winner.png'
+
+    IMAGES = {WALL: FLOORS[1], FLOOR: FLOORS[0],
+              GUARDIAN: GUARDIAN_IMAGE, PLAYER: MACGYVER_IMAGE}
+
+    PIXELS = 20
+
+    def __init__(self, n):
+        self.win = False
+        self.n = n
+        self.level = []
+        self.tiles = []
+        self.bonus = []
+        self.points = 0
+        self.total = 0
+
+    def load_level(self):
+        with open(Game.PATH_LEVEL.format(self.n)) as f:
+            for line in f:
+                new_line = line.rstrip('\n')
+                self.level.append(list(map(int, list(new_line))))
+
+    def load_bonus(self):
+        for f in os.listdir(Game.PATH_BONUS):
+            path = os.path.join(Game.PATH_BONUS, f)
+            surface = pygame.image.load(path).convert()
+            self.bonus.append(surface)
+            self.total += 1
+
+    def load_tile(self, path):
+        surface = pygame.image.load(path).convert()
+        self.tiles.append(surface)
+        return surface
+
+    def move(self, key):
+        if self.win:
+            return
+
+        elif hasattr(self, "all_bonus"):
+            if not self.all_bonus:
+                return
+
+        x, y = Game.DIRECTIONS[key]
+        for line, columns in enumerate(self.level):
+            if Game.PLAYER in columns:
+                column = columns.index(Game.PLAYER)
+                break
+
+        try:
+            if self.level[line + y][column + x] != Game.WALL:
+                if self.level[line + y][column + x] == Game.BONUS:
+                    self.points += 1
+
+                elif self.level[line + y][column + x] == Game.GUARDIAN:
+                    if self.points == self.total:
+                        self.win = True
+                    else:
+                        self.all_bonus = False
+
+                self.level[line + y][column + x] = Game.PLAYER
+                self.level[line][column] = Game.FLOOR
+        except IndexError:
+            pass
+
+    def place_bonus(self):
+        for tile in self.bonus:
+            while True:
+                line = randint(0, len(self.level) - 1)
+                column = randint(0, len(self.level[0]) - 1)
+                value = self.level[line][column]
+                if value == Game.FLOOR:
+                    self.level[line][column] = Game.BONUS
+                    break
+
+    def draw(self, pixels):
+        for i, line in enumerate(self.level):
+            for j, value in enumerate(line):
+                pos = (j * pixels, i * pixels)
+                if value in (Game.WALL, Game.FLOOR, Game.GUARDIAN, Game.PLAYER):
+                    screen.blit(self.load_tile(Game.IMAGES[value]), pos)
+                else:
+                    if self.bonus:
+                        screen.blit(self.bonus.pop(), pos)
+        if self.win:
+            self.draw_result("YOU WON!")
+        elif hasattr(self, "all_bonus"):
+            if not self.all_bonus:
+                self.draw_result("YOU LOSE!")
+
+    def draw_result(self, text):
+        pygame.draw.rect(screen, WHITE, [50, 50, 225, 100])
+        text = text_format(text, font, 45, BLACK)
+        screen.blit(text, (60, 60, 200, 100))
 
     def start(self):
-        """start game"""
-        self.clock = pygame.time.Clock()
+        self.load_level()
+        self.load_bonus()
+        self.place_bonus()
+        self.draw(Game.PIXELS)
+        clock.tick(FPS)
 
-        self.continu = True
-        while self.continu:
-            self.clock.tick(60)
+        # loop of game
+        continu = True
+        while continu:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
-                    for attr in ('RIGHT', 'LEFT', 'UP', 'DOWN'):
-                        if event.key == getattr(pygame, f'K_{attr}'):
-                            res = move(Game.PLAYER, self.grounds, getattr(Game, attr))
-                            draw(self.grounds, Game.SPEED)
-                            if res != None:
-                                draw_result(res)
-                                pygame.display.flip()
-                                pygame.time.delay(2000)
-                                self.quit()
+                    for direction in Game.DIRECTIONS:
+                        if event.key == getattr(pygame, f'K_{direction}'):
+                            self.move(direction)
+                            self.draw(Game.PIXELS)
+                            pygame.display.flip()
             pygame.display.flip()
 
-game = Game()
-game.start()
+
+main_menu()
