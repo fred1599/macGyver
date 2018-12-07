@@ -1,14 +1,10 @@
-import os, sys
-import pygame
-
+import os
+import sys
 from random import randint
+
+import pygame
 from pygame.locals import *
 
-# Game Initialization
-pygame.init()
-
-# Center the Game Application
-os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 # Colors
 WHITE = (255, 255, 255)
@@ -23,63 +19,6 @@ YELLOW = (255, 255, 0)
 WIDTH = 300
 HEIGHT = 300
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
-# Game Fonts
-font = "Airstream.ttf"
-
-# Game Framerate
-clock = pygame.time.Clock()
-FPS = 30
-
-
-def text_format(message, textFont, textSize, textColor):
-    newFont = pygame.font.Font(textFont, textSize)
-    newText = newFont.render(message, 0, textColor)
-
-    return newText
-
-
-def main_menu():
-    menu = True
-    selected = True
-
-    while menu:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    selected = True
-                elif event.key == pygame.K_DOWN:
-                    selected = False
-                if event.key == pygame.K_RETURN:
-                    if selected:
-                        Game(1).start()
-                    else:
-                        pygame.quit()
-                        quit()
-
-        # Main Menu UI
-        screen.fill(BLUE)
-        title = text_format("Mc Gyver", font, 45, YELLOW)
-        if selected:
-            text_start = text_format("START", font, 30, WHITE)
-            start_rect = text_start.get_rect()
-            screen.blit(text_start, (WIDTH / 2 - (start_rect[2] / 2), 150))
-        elif not selected:
-            text_quit = text_format("QUIT", font, 30, BLACK)
-            quit_rect = text_quit.get_rect()
-            screen.blit(text_quit, (WIDTH / 2 - (quit_rect[2] / 2), 180))
-
-        title_rect = title.get_rect()
-
-        # Main Menu Text
-        screen.blit(title, (WIDTH / 2 - (title_rect[2] / 2), 80))
-
-        pygame.display.update()
-        clock.tick(FPS)
-        pygame.display.set_caption("Mc Gyver - Main Menu")
 
 
 class Game:
@@ -207,13 +146,82 @@ class Game:
         continu = True
         while continu:
             for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    continu = False
                 if event.type == pygame.KEYDOWN:
+                    if event.key == K_ESCAPE:
+                        continu = False
                     for direction in Game.DIRECTIONS:
                         if event.key == getattr(pygame, f'K_{direction}'):
                             self.move(direction)
                             self.draw(Game.PIXELS)
                             pygame.display.flip()
             pygame.display.flip()
+        pygame.quit()
+        sys.exit()
 
+
+def text_format(message, textFont, textSize, textColor):
+    newFont = pygame.font.Font(textFont, textSize)
+    newText = newFont.render(message, 0, textColor)
+
+    return newText
+
+
+def main_menu():
+    menu = True
+    selected = True
+
+    while menu:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    selected = True
+                elif event.key == pygame.K_DOWN:
+                    selected = False
+                if event.key == pygame.K_RETURN:
+                    if selected:
+                        Game(1).start()
+                    else:
+                        pygame.quit()
+                        quit()
+
+        # Main Menu UI
+        screen.fill(BLUE)
+        title = text_format("Mc Gyver", font, 45, YELLOW)
+        if selected:
+            text_start = text_format("START", font, 30, WHITE)
+            start_rect = text_start.get_rect()
+            screen.blit(text_start, (WIDTH / 2 - (start_rect[2] / 2), 150))
+        elif not selected:
+            text_quit = text_format("QUIT", font, 30, BLACK)
+            quit_rect = text_quit.get_rect()
+            screen.blit(text_quit, (WIDTH / 2 - (quit_rect[2] / 2), 180))
+
+        title_rect = title.get_rect()
+
+        # Main Menu Text
+        screen.blit(title, (WIDTH / 2 - (title_rect[2] / 2), 80))
+
+        pygame.display.update()
+        clock.tick(FPS)
+        pygame.display.set_caption("Mc Gyver - Main Menu")
+
+
+# Game Initialization
+pygame.init()
+
+# Center the Game Application
+os.environ['SDL_VIDEO_CENTERED'] = '1'
+
+# Game Fonts
+font = "Airstream.ttf"
+
+# Game Framerate
+clock = pygame.time.Clock()
+FPS = 30
 
 main_menu()
