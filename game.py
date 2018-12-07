@@ -17,8 +17,6 @@ YELLOW = (255, 255, 0)
 # Game Resolution
 WIDTH = 300
 HEIGHT = 300
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
 
 class Game:
     PATH_CURRENT_FILE = os.path.abspath(os.path.dirname(__file__))
@@ -120,10 +118,10 @@ class Game:
                 pos = (j * pixels, i * pixels)
                 if value in (Game.WALL, Game.FLOOR,
                              Game.GUARDIAN, Game.PLAYER):
-                    screen.blit(self.load_tile(Game.IMAGES[value]), pos)
+                    SCREEN.blit(self.load_tile(Game.IMAGES[value]), pos)
                 else:
                     if self.bonus:
-                        screen.blit(self.bonus.pop(), pos)
+                        SCREEN.blit(self.bonus.pop(), pos)
         if self.win:
             self.draw_result("YOU WON!")
         elif hasattr(self, "all_bonus"):
@@ -131,9 +129,9 @@ class Game:
                 self.draw_result("YOU LOSE!")
 
     def draw_result(self, text):
-        pygame.draw.rect(screen, WHITE, [50, 50, 225, 100])
+        pygame.draw.rect(SCREEN, WHITE, [50, 50, 225, 100])
         text = text_format(text, font, 45, BLACK)
-        screen.blit(text, (60, 60, 200, 100))
+        SCREEN.blit(text, (60, 60, 200, 100))
 
     def start(self):
         self.load_level()
@@ -190,21 +188,21 @@ def main_menu():
                         quit()
 
         # Main Menu UI
-        screen.fill(BLUE)
+        SCREEN.fill(BLUE)
         title = text_format("Mc Gyver", font, 45, YELLOW)
         if selected:
             text_start = text_format("START", font, 30, WHITE)
             start_rect = text_start.get_rect()
-            screen.blit(text_start, (WIDTH / 2 - (start_rect[2] / 2), 150))
+            SCREEN.blit(text_start, (WIDTH / 2 - (start_rect[2] / 2), 150))
         elif not selected:
             text_quit = text_format("QUIT", font, 30, BLACK)
             quit_rect = text_quit.get_rect()
-            screen.blit(text_quit, (WIDTH / 2 - (quit_rect[2] / 2), 180))
+            SCREEN.blit(text_quit, (WIDTH / 2 - (quit_rect[2] / 2), 180))
 
         title_rect = title.get_rect()
 
         # Main Menu Text
-        screen.blit(title, (WIDTH / 2 - (title_rect[2] / 2), 80))
+        SCREEN.blit(title, (WIDTH / 2 - (title_rect[2] / 2), 80))
 
         pygame.display.update()
         clock.tick(FPS)
@@ -216,6 +214,7 @@ pygame.init()
 
 # Center the Game Application
 os.environ['SDL_VIDEO_CENTERED'] = '1'
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 
 # Game Fonts
 font = "Airstream.ttf"
