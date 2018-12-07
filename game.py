@@ -3,7 +3,6 @@ import sys
 from random import randint
 
 import pygame
-from pygame.locals import *
 
 
 # Colors
@@ -119,7 +118,7 @@ class Game:
         for i, line in enumerate(self.level):
             for j, value in enumerate(line):
                 pos = (j * pixels, i * pixels)
-                if value in (Game.WALL, Game.FLOOR, 
+                if value in (Game.WALL, Game.FLOOR,
                              Game.GUARDIAN, Game.PLAYER):
                     screen.blit(self.load_tile(Game.IMAGES[value]), pos)
                 else:
@@ -150,7 +149,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     continu = False
                 if event.type == pygame.KEYDOWN:
-                    if event.key == K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE:
                         continu = False
                     for direction in Game.DIRECTIONS:
                         if event.key == getattr(pygame, f'K_{direction}'):
@@ -162,11 +161,11 @@ class Game:
         sys.exit()
 
 
-def text_format(message, textFont, textSize, textColor):
-    newFont = pygame.font.Font(textFont, textSize)
-    newText = newFont.render(message, 0, textColor)
+def text_format(message, text_font, textSize, textColor):
+    new_font = pygame.font.Font(text_font, textSize)
+    new_text = new_font.render(message, 0, textColor)
 
-    return newText
+    return new_text
 
 
 def main_menu():
