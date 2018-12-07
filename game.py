@@ -55,54 +55,64 @@ class Game:
         self.total = 0
 
     def load_level(self):
-        with open(Game.PATH_LEVEL.format(self.n)) as f:
-            for line in f:
+        """load the level from a file"""
+        with open(Game.PATH_LEVEL.format(self.n)) as f_level:
+            for line in f_level:
                 new_line = line.rstrip('\n')
                 self.level.append(list(map(int, list(new_line))))
 
     def load_bonus(self):
-        for f in os.listdir(Game.PATH_BONUS):
-            path = os.path.join(Game.PATH_BONUS, f)
+        """load bonus from a file and transform surfaces"""
+        for f_bonus in os.listdir(Game.PATH_BONUS):
+            path = os.path.join(Game.PATH_BONUS, f_bonus)
             surface = pygame.image.load(path).convert()
             self.bonus.append(surface)
             self.total += 1
 
     def load_tile(self, path):
+        """load tiles from a file and transform surfaces
+        :type path: string
+        """
         surface = pygame.image.load(path).convert()
         self.tiles.append(surface)
         return surface
 
     def move(self, key):
+        """
+        the moves of player Mc Gyver
+        :type key: key of Game.DIRECTIONS dictionary
+        """
         if self.win:
             return
 
-        elif hasattr(self, "all_bonus"):
+        if hasattr(self, "all_bonus"):
             if not self.all_bonus:
                 return
 
-        x, y = Game.DIRECTIONS[key]
+        x_move, y_move = Game.DIRECTIONS[key]
         for line, columns in enumerate(self.level):
             if Game.PLAYER in columns:
                 column = columns.index(Game.PLAYER)
                 break
 
         try:
-            if self.level[line + y][column + x] != Game.WALL:
-                if self.level[line + y][column + x] == Game.BONUS:
+            if self.level[line + y_move][column + x_move] != Game.WALL:
+                if self.level[line + y_move][column + x_move] == Game.BONUS:
                     self.points += 1
 
-                elif self.level[line + y][column + x] == Game.GUARDIAN:
+                elif self.level[line + y_move][column + x_move] == Game.GUARDIAN:
                     if self.points == self.total:
                         self.win = True
                     else:
                         self.all_bonus = False
 
-                self.level[line + y][column + x] = Game.PLAYER
+                self.level[line + y_move][column + x_move] = Game.PLAYER
                 self.level[line][column] = Game.FLOOR
         except IndexError:
             pass
 
     def place_bonus(self):
+        """place bonus in game"""
         for tile in self.bonus:
             while True:
                 line = randint(0, len(self.level) - 1)
@@ -113,6 +123,9 @@ class Game:
                     break
 
     def draw(self, pixels):
+        """draw on the screen bonus and tiles
+        :type pixels: integer
+        """
         for i, line in enumerate(self.level):
             for j, value in enumerate(line):
                 pos = (j * pixels, i * pixels)
@@ -129,11 +142,13 @@ class Game:
                 self.draw_result("YOU LOSE!")
 
     def draw_result(self, text):
+        """display result on rectangle"""
         pygame.draw.rect(SCREEN, WHITE, [50, 50, 225, 100])
         text = text_format(text, font, 45, BLACK)
         SCREEN.blit(text, (60, 60, 200, 100))
 
     def start(self):
+        """start game"""
         self.load_level()
         self.load_bonus()
         self.place_bonus()
@@ -160,6 +175,7 @@ class Game:
 
 
 def text_format(message, text_font, textSize, textColor):
+    """create image text"""
     new_font = pygame.font.Font(text_font, textSize)
     new_text = new_font.render(message, 0, textColor)
 
@@ -167,6 +183,7 @@ def text_format(message, text_font, textSize, textColor):
 
 
 def main_menu():
+    """main menu of game"""
     menu = True
     selected = True
 
