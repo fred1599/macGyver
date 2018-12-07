@@ -119,7 +119,8 @@ class Game:
         for i, line in enumerate(self.level):
             for j, value in enumerate(line):
                 pos = (j * pixels, i * pixels)
-                if value in (Game.WALL, Game.FLOOR, Game.GUARDIAN, Game.PLAYER):
+                if value in (Game.WALL, Game.FLOOR, 
+                             Game.GUARDIAN, Game.PLAYER):
                     screen.blit(self.load_tile(Game.IMAGES[value]), pos)
                 else:
                     if self.bonus:
