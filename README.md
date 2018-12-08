@@ -19,6 +19,9 @@ Keys for playing:
 
 
 UP -> arrow up
+
 DOWN -> arrow down
+
 RIGHT -> arrow right
+
 LEFT -> arrow left
