@@ -17,6 +17,7 @@ Fan of Richard Dean Anderson, you imagine a labyrinth 2D where MacGyver is enclo
 Keys for playing:
 ----------------
 
+
 UP -> arrow up
 DOWN -> arrow down
 RIGHT -> arrow right
