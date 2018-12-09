@@ -207,6 +207,8 @@ def main_menu():
         # Main Menu UI
         SCREEN.fill(BLUE)
         title = text_format("Mc Gyver", font, 45, YELLOW)
+        intro = text_format("Retrieve all objects", font, 15, RED)
+
         if selected:
             text_start = text_format("START", font, 30, WHITE)
             start_rect = text_start.get_rect()
@@ -217,9 +219,11 @@ def main_menu():
             SCREEN.blit(text_quit, (WIDTH / 2 - (quit_rect[2] / 2), 180))
 
         title_rect = title.get_rect()
+        intro_rect = intro.get_rect()
 
         # Main Menu Text
         SCREEN.blit(title, (WIDTH / 2 - (title_rect[2] / 2), 80))
+        SCREEN.blit(intro, (WIDTH / 2 - (intro_rect[2] / 2), 132))
 
         pygame.display.update()
         clock.tick(FPS)
